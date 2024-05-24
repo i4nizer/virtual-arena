@@ -48,7 +48,7 @@ header {
     border-radius: 8px;
 }
 
-.header-section a {
+header a {
     width: 100px;
     height: 36px;
     line-height: 36px;
@@ -71,7 +71,14 @@ header {
 
 .header-nav a {
     color: dimgray;
+    background-color: inherit;
     text-decoration: none;
+}
+
+.header-nav .selected,
+.header-nav a:hover { 
+    color: white;
+    background-color: lightgray;
 }
 /* HEADER */
 
@@ -115,6 +122,10 @@ main {
     width: min(90%, 360px);
     height: auto;
     padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     border: 1px solid lightgray;
     border-radius: 8px;
 }
@@ -141,6 +152,8 @@ main {
 }
 
 .form-box form .form-field input[type="text"],
+.form-box form .form-field input[type="tel"],
+.form-box form .form-field input[type="email"],
 .form-box form .form-field input[type="number"],
 .form-box form .form-field select {
     width: calc(100% - 20px);
@@ -161,8 +174,10 @@ main {
 }
 
 .form-box form input[type="submit"] {
-    width: 100px;
-    height: 44px;
+    width: auto;
+    height: auto;
+    padding: 10px 20px;
+    align-self: flex-end;
     border: 1px solid lightgray;
     border-radius: 8px;
 }
@@ -205,6 +220,63 @@ main {
     left: 27px;
     background-color: white;
 }
-
-
 /* SWITCH */
+
+
+
+
+/* TABLE */
+.table-box {
+    width: 100%;
+    height: auto;
+    min-width: fit-content;
+    padding: 20px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.table-box table {
+    width: clamp(90%, 90%, fit-content);
+    height: auto;
+    /* table-layout: fixed; */
+    border: 1px solid lightgray;
+    border-radius: 8px;
+    border-collapse: collapse;
+}
+
+.table-box table tr {
+    width: auto;
+    height: 50px;
+    border: 1px solid lightgray;
+}
+
+.table-box table th,
+.table-box table td {
+    width: auto;
+    height: 60px;
+    /* overflow-x: auto; */
+    padding: 0 20px;
+    border: 1px solid lightgray;
+}
+
+.table-box table th { height: 70px; }
+
+.table-box table tr a,
+.table-box table tr input[type="submit"] {
+    width: auto;
+    height: auto;
+    margin: 0;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    border: 1px solid lightgray;
+    border-radius: 8px;
+}
+
+.table-box table tr .empty-row {
+    column-span: all !important;
+    text-align: center;
+    color: lightgray;
+}
+/* TABLE */

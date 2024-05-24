@@ -119,12 +119,127 @@ function updateTourna($id, $title, $format, $maxEntry, $maxEntryPlayer, $pairing
 function createTeam($name, $tournaId) {
     GLOBAL $pdo;
     
-    // Prepare SQL
-    $sql = "INSERT INTO team (name, tourna_id) VALUES(?, ?, ?)";
+    // Supply param and execute
+    $sql = "INSERT INTO team (name, tourna_id) VALUES(?, ?)";
     $stmt = $pdo->prepare($sql);
+    $stmt->execute(array($name, $tournaId));
+    
+    // Boolean state return Success
+    return $stmt->rowCount() > 0;
+}
+
+// Get specific team
+function getTeam($teamId) {
+    GLOBAL $pdo;
     
     // Supply param and execute
-    $stmt->execute(array($name, $tournaId));
+    $sql = "SELECT * FROM team WHERE id = ?";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(array($teamId));
+    
+    // Fetch team
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+// Get teams (assoc)
+function getTeams($tournaId) {
+    GLOBAL $pdo;
+    
+    // Supply param and execute
+    $sql = "SELECT * FROM team WHERE tourna_id = ?";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(array($tournaId));
+    
+    // Fetch teams
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+// Remove specific team
+function removeTeam($id) {
+    GLOBAL $pdo;
+    
+    // Supply param and execute
+    $sql = "DELETE FROM team WHERE id = ?";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(array($id));
+    
+    // Boolean state return Success
+    return $stmt->rowCount() > 0;
+}
+
+// No team, no player
+function createPlayer($name, $email, $contactNo, $teamId) {
+    GLOBAL $pdo;
+    
+    // Supply param and execute
+    $sql = "INSERT INTO player (name, email, contact_no, score, wins, loses, team_id) VALUES(?, ?, ?, ?, ?, ?, ?)";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(array($name, $email, $contactNo, 0, 0, 0, $teamId));
+    
+    // Boolean state return Success
+    return $stmt->rowCount() > 0;
+}
+
+// Get Specific Player
+function getPlayer($id) {
+    GLOBAL $pdo;
+    
+    // Supply param and execute
+    $sql = "SELECT * FROM player WHERE id = ?";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(array($id));
+    
+    // Fetch player
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+// Get All Players with team name mixed with team_name & team_id (assoc)
+function getPlayers($teamId) {
+    GLOBAL $pdo;
+    
+    // Supply param and execute
+    $sql = "SELECT player.*, team.id AS team_id, team.name AS team_name FROM player INNER JOIN team ON team.id = player.team_id WHERE player.team_id = ?";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(array($teamId));
+    
+    // Fetch players
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+// Get all players of the Tourna (array of assocs)
+function getAllPlayers($tournaId) {
+    GLOBAL $pdo;
+    
+    // Supply param and execute
+    $sql = "SELECT player.*, team.name AS team_name FROM player INNER JOIN team ON team.id = player.team_id WHERE team.tourna_id = ?";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(array($tournaId));
+    
+    // Fetch players
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+// Update specific player
+function updatePlayer($id, $name, $email, $contactNo, $score, $wins, $loses) {
+    GLOBAL $pdo;
+    
+    // Supply param and execute
+    $sql = "UPDATE player SET name = ?, email = ?, contact_no = ?, score = ?, wins = ?, loses = ? WHERE id = ?";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(array($name, $email, $contactNo, $score, $wins, $loses, $id));
+    
+    // Boolean state return Success
+    return $stmt->rowCount() > 0;
+}
+
+// Remove specific player
+function removePlayer($id) {
+    GLOBAL $pdo;
+    
+    // Supply param and execute
+    $sql = "DELETE FROM player WHERE id = ?";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(array($id));
     
     // Boolean state return Success
     return $stmt->rowCount() > 0;

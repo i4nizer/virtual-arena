@@ -49,7 +49,7 @@ if(isset($_POST["submit"])) {
 
                     <div class="field button-field">
                         <input class="button button-login" type="submit" name="submit" value="Sign Up">
-                        <button class="button button-register"  type="submit"> <a href="login.php"> Log In </a> </button>
+                        <button class="button button-register"  type="submit"> <a href="signin.php">Sign In</a> </button>
                     </div>
                 </form>
             </div>

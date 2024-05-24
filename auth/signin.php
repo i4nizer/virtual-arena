@@ -27,7 +27,7 @@ if(isset($_POST["submit"])) {
     <div class="login-field">
         <div class="login-background">
             <div class="login-title">
-                <span>Log In</span>
+                <span>Sign In</span>
             </div>
 
             <div class="login-form">
