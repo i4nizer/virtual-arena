@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 23, 2024 at 09:05 PM
+-- Generation Time: May 24, 2024 at 08:17 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -77,9 +77,15 @@ CREATE TABLE `result` (
 CREATE TABLE `team` (
   `id` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
-  `max_player` int(11) NOT NULL,
   `tourna_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `team`
+--
+
+INSERT INTO `team` (`id`, `name`, `tourna_id`) VALUES
+(6, 'RCS', 1);
 
 -- --------------------------------------------------------
 
@@ -92,6 +98,7 @@ CREATE TABLE `tournament` (
   `title` varchar(255) NOT NULL,
   `format` varchar(255) NOT NULL,
   `max_entry` int(11) NOT NULL,
+  `max_entry_player` int(11) NOT NULL,
   `pairing` varchar(255) NOT NULL,
   `is_public` tinyint(1) NOT NULL,
   `is_open` tinyint(1) NOT NULL,
@@ -103,8 +110,8 @@ CREATE TABLE `tournament` (
 -- Dumping data for table `tournament`
 --
 
-INSERT INTO `tournament` (`id`, `title`, `format`, `max_entry`, `pairing`, `is_public`, `is_open`, `description`, `creator_id`) VALUES
-(1, 'Pubgm India Finals', 'Single Elimination', 2, 'Random', 0, 1, 'Lezz go india waaaahhh dahek hahah', 1);
+INSERT INTO `tournament` (`id`, `title`, `format`, `max_entry`, `max_entry_player`, `pairing`, `is_public`, `is_open`, `description`, `creator_id`) VALUES
+(1, 'Pubgm India Finals', 'Single Elimination', 2, 1, 'Random', 0, 1, 'Lezz go india waaaahhh dahek hahahkdog', 1);
 
 -- --------------------------------------------------------
 
@@ -191,7 +198,7 @@ ALTER TABLE `match`
 -- AUTO_INCREMENT for table `player`
 --
 ALTER TABLE `player`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `result`
@@ -203,7 +210,7 @@ ALTER TABLE `result`
 -- AUTO_INCREMENT for table `team`
 --
 ALTER TABLE `team`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `tournament`
