@@ -49,7 +49,7 @@ function getAllPlayers($tournaId) {
     GLOBAL $pdo;
     
     // Supply param and execute
-    $sql = "SELECT player.*, team.name AS team_name FROM player INNER JOIN team ON team.id = player.team_id WHERE team.tourna_id = ?";
+    $sql = "SELECT player.*, team.id AS team_id, team.name AS team_name FROM player INNER JOIN team ON team.id = player.team_id WHERE team.tourna_id = ?";
     $stmt = $pdo->prepare($sql);
     $stmt->execute(array($tournaId));
     

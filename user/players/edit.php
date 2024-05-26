@@ -1,7 +1,7 @@
 <?php
+require '../../funcs/tourna.php';
 require '../../funcs/player.php';
 require '../../funcs/team.php';
-require '../../funcs/tourna.php';
 
 // Check if Logged In
 session_start();
@@ -34,6 +34,15 @@ if($teamId == NULL) {
     exit();
 }
 
+// Get player_id
+$playerId = isset($_POST["player_id"])? $_POST["player_id"] : NULL;
+$playerId = $playerId ?? isset($_GET["player_id"])? $_GET["player_id"] : NULL;
+if($playerId == NULL) {
+    header("Location: index.php?tourna_id=$tournaId&team_id=$teamId");
+    exit();
+}
+$player = getPlayer($playerId);
+
 // Get Selected Tournament of the user *
 $selectedTourna = getTourna($userId, $tournaId);
 if(empty($selectedTourna)) header("Location: ../dashboard/ctourna.php");
@@ -53,22 +62,24 @@ $playerLimit = $selectedTourna["max_entry_player"];
 $players = getPlayers($teamId);
 
 
+
 // Notifier
 $msg = "";
 $msgState = "";
 
 
 
-// Adds player
-if(isset($_POST["add_player"]) && count($players) < $playerLimit) {
+// Updates player
+if(isset($_POST["update_player"])) {
     // Success
-    if(createPlayer($_POST["name"], $_POST["email"], $_POST["contact_no"], $_POST["team_id"])) {
-        $msg = "Player added successfully.";
+    if(updatePlayer($_POST["player_id"], $_POST["name"], $_POST["email"], $_POST["contact_no"], $_POST["score"], $_POST["wins"], $_POST["loses"])) {
+        $msg = "Player updated successfully.";
         $msgState = "success";
+        header("Location: index.php?tourna_id=$tournaId&team_id=$teamId");
     }
     // Fail
     else {
-        $msg = "An error occured, failed to add player.";
+        $msg = "An error occured, failed to update player.";
         $msgState = "failed";
     }
 }
@@ -176,89 +187,84 @@ else if(isset($_POST["remove_player"])) {
 
         <div class="content-box">
             <?php if($msg != "") echo "<div class=\"msg $msgState\">$msg</div>"; ?>
-
-            <?php
-            // Limit
-            if(count($players) < $playerLimit) { ?>
-
-                <!-- Add Player -->
+            
+            <!-- Edit Player Data -->
             <div class="form-box box">
                 <form action="" method="post">
-                    <h3>Add Player</h3>
+                    <h3>Edit Player</h3>
                     <div class="form-field">
                         <label for="name">Player Name</label>
-                        <input type="text" name="name" id="name" max="255" placeholder="Name">
+                        <input type="text" name="name" id="name" max="255" placeholder="Name" value="<?php echo $player["name"]; ?>">
                     </div>
                     <div class="form-field">
                         <label for="email">Email</label>
-                        <input type="email" name="email" id="email" max="255" placeholder="Email">
+                        <input type="email" name="email" id="email" max="255" placeholder="Email" value="<?php echo $player["email"]; ?>">
                     </div>
                     <div class="form-field">
                         <label for="contact_no">Contact</label>
-                        <input type="tel" name="contact_no" id="contact_no" max="255" placeholder="Contact number">
+                        <input type="tel" name="contact_no" id="contact_no" max="255" placeholder="Contact number" value="<?php echo $player["contact_no"]; ?>">
                     </div>
                     <div class="form-field">
                         <label for="score">Score</label>
-                        <input type="number" name="score" id="score" max="255" placeholder="Score">
+                        <input type="number" name="score" id="score" max="255" placeholder="Score" value="<?php echo $player["score"]; ?>">
                     </div>
                     <div class="form-field">
                         <label for="wins">Wins</label>
-                        <input type="number" name="wins" id="wins" max="255" placeholder="Wins">
+                        <input type="number" name="wins" id="wins" max="255" placeholder="Wins" value="<?php echo $player["wins"]; ?>">
                     </div>
                     <div class="form-field">
                         <label for="loses">Loses</label>
-                        <input type="number" name="loses" id="loses" max="255" placeholder="Loses">
+                        <input type="number" name="loses" id="loses" max="255" placeholder="Loses" value="<?php echo $player["loses"]; ?>">
                     </div>
+                    <input type="hidden" name="player_id" value="<?php echo $playerId; ?>">
                     <input type="hidden" name="team_id" value="<?php echo $teamId; ?>">
                     <input type="hidden" name="tourna_id" value="<?php echo $tournaId; ?>">
-                    <input type="submit" name="add_player" value="Add">
+                    <input type="submit" name="update_player" value="Save">
                 </form>
             </div>
 
-            <?php } ?>
-
             <!-- Player List Table mixed with Team Name -->
-                <div class="table-box box">
-                    <table>
-                        <tr>
-                            <th>Team Name</th>
-                            <th>Player Name</th>
-                            <th>Email</th>
-                            <th>Contact</th>
-                            <th>Score</th>
-                            <th>Wins</th>
-                            <th>Loses</th>
-                            <th>Edit</th>
-                            <th>Remove</th>
-                        </tr>
-                    <?php if($players) {
-                            // Loop through
-                            foreach($players as $player) { ?>
-                                
-                                <tr>
-                                    <td><?php echo $player["team_name"]; ?></td>
-                                    <td><?php echo $player["name"]; ?></td>
-                                    <td><?php echo $player["email"]; ?></td>
-                                    <td><?php echo $player["contact_no"]; ?></td>
-                                    <td><?php echo $player["score"]; ?></td>
-                                    <td><?php echo $player["wins"]; ?></td>
-                                    <td><?php echo $player["loses"]; ?></td>
-                                    <td><a href="edit.php?team_id=<?php echo $teamId; ?>&player_id=<?php echo $player["id"]; ?>&tourna_id=<?php echo $tournaId; ?>">Edit</a></td>
-                                    <td>
-                                        <form class="form-quick" action="" method="post">
-                                            <input type="hidden" name="player_id" value="<?php echo $player["id"]; ?>">
-                                            <input type="submit" name="remove_player" value="Remove" class="danger">
-                                        </form>
-                                    </td>
-                                </tr>
+            <div class="table-box box">
+                <table>
+                    <tr>
+                        <th>Team</th>
+                        <th>Player</th>
+                        <th>Email</th>
+                        <th>Contact</th>
+                        <th>Score</th>
+                        <th>Wins</th>
+                        <th>Loses</th>
+                        <th>Edit</th>
+                        <th>Remove</th>
+                    </tr>
+                <?php if($players) {
+                        // Loop through
+                        foreach($players as $player) { ?>
+                            
+                            <tr>
+                                <td><?php echo $player["team_name"]; ?></td>
+                                <td><?php echo $player["name"]; ?></td>
+                                <td><?php echo $player["email"]; ?></td>
+                                <td><?php echo $player["contact_no"]; ?></td>
+                                <td><?php echo $player["score"]; ?></td>
+                                <td><?php echo $player["wins"]; ?></td>
+                                <td><?php echo $player["loses"]; ?></td>
+                                <td><a href="edit.php?team_id=<?php echo $teamId; ?>&player_id=<?php echo $player["id"]; ?>&tourna_id=<?php echo $tournaId; ?>">Edit</a></td>
+                                <td>
+                                    <form class="form-quick" action="" method="post">
+                                        <input type="hidden" name="player_id" value="<?php echo $player["id"]; ?>">
+                                        <input type="submit" name="remove_player" value="Remove" class="danger">
+                                    </form>
+                                </td>
+                            </tr>
 
-                            <?php }
-                        } // has players
-                        // no players
-                        else { ?> <tr> <td colspan="9">No Players Found</td> </tr> <?php }
-                        ?>
-                    </table>
-                </div>
+                        <?php }
+                    } // has players
+                    // no players
+                    else { ?> <tr> <td colspan="9">No Players Found</td> </tr> <?php }
+                    ?>
+                </table>
+            </div>
 
         </div>
     </main>

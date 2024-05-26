@@ -13,13 +13,12 @@
     width: auto;
     height: auto;
     min-width: fit-content;
+    
     overflow-y: auto;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    border: 1px solid black;
-    border-radius: 6px;
 }
 
 .form-box h1 {
@@ -30,17 +29,17 @@
     width: 400px;   
     height: auto;
     padding: 20px;
+    
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    
     color: white;
-    border-radius: 6px;
-    background-color: #950101;
 }
 
 .form-box .form-display {
-    background-color: inherit;
+    background-color: rgba(78, 108, 183, 0.69);
 }
 
 .form-box form h3 {
@@ -75,8 +74,8 @@
     padding: 0 10px;
     border: none;
     border-radius: 6px;
-    color: white;
-    background-color: #3d0000;
+    color: black;
+    background-color: white;
 }
 
 .form-box form .form-field select {
@@ -89,8 +88,8 @@
     padding: 10px;
     border: none;
     border-radius: 6px;
-    color: white;
-    background-color: #3d0000;
+    color: black;
+    background-color: white;
 }
 
 .form-box form input[type="submit"] {
@@ -101,7 +100,7 @@
     border: none;
     border-radius: 8px;
     color: white;
-    background-color: #ff0000;
+    background-color: #00b894;
 }
 
 .form-box form input[type="submit"]:hover {
@@ -133,8 +132,10 @@
     width: 50px;
     height: 28px;
     border-radius: 22px;
-    background-color: #3d0000;
+    background-color: #00b894;
 }
+
+.switch div:hover { opacity: 0.9; }
 
 .switch div div {
     width: 18px;
@@ -149,7 +150,7 @@
 
 .switch input:checked~div {
     left: 27px;
-    background-color: #ff0000;
+    background-color: lightskyblue;
 }
 
 .switch input:checked~div div {

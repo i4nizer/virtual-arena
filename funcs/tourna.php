@@ -20,7 +20,7 @@ function createTourna($title, $timezone, $format, $maxEntry, $maxEntryPlayer, $s
     return $stmt->rowCount() > 0;
 }
 
-// Get Specific Tourna
+// Get Specific Tourna (most used)
 function getTourna($userId, $tournaId) {
     GLOBAL $pdo;
 
@@ -58,6 +58,18 @@ function updateTourna($id, $title, $timezone, $format, $maxEntry, $maxEntryPlaye
     $stmt->execute(array($title, $timezone, $format, $maxEntry, $maxEntryPlayer, $start_dt, $end_dt, $pairing, $public, $open, $desc, $creatorId, $id));
 
     // Boolean state return Success
+    return $stmt->rowCount() > 0;
+}
+
+// Update prep tourna
+function deleteTourna($id) {
+    GLOBAL $pdo;
+
+    // Prepare and Execute
+    $sql = "DELETE FROM tournament WHERE id = ?";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(array($id));
+
     return $stmt->rowCount() > 0;
 }
 
@@ -148,24 +160,6 @@ function getOngoingMatches($tournaId, $tournaTimezone) {
     $stmt->execute(array($tournaId, $tournaId, $tournaTimezone));
     
     // Fetch all matches
-    return $stmt->fetchAll();
-}
-
-// Get Top Team
-function getTopTeams($tournaId, $limit) {
-    GLOBAL $pdo;
-
-    // Prepare
-    // $sql = "SELECT ";
-    // $sql = "SELECT player.team_id, player.wins FROM player WHERE player.team_id = team.id AND team.tourna_id = ? GROUP BY player.team_id";
-    // $sql = "SELECT team.name, SUM(player.wins) AS wins FROM team 
-    //     INNER JOIN player ON player.team_id = team.id
-    //     WHERE team.tourna_id = ? ORDER BY wins ASC LIMIT $limit";
-    $sql = "SELECT name FROM team WHERE tourna_id = ?";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute(array($tournaId));
-
-    // Fetch top5 teams
     return $stmt->fetchAll();
 }
 

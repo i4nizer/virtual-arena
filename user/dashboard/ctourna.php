@@ -8,6 +8,9 @@ if(!isset($_SESSION["user_id"])) header("Location: ../../auth/signin.php");
 $userId = $_SESSION["user_id"];
 $userName = $_SESSION["username"];
 
+// Get All Tournaments of the user
+$tournas = getTournas($userId, "id, title");     // title, id
+
 // Notifier
 $msg = "";
 $msgState = "";
@@ -51,21 +54,32 @@ if(isset($_POST["submit"])) {
 
     <!-- Header -->
     <header>
-        <div class="header-row">
-            <div class="header-section">
-                <h3>Virtual Arena</h3>
-            </div>
-            <div class="header-section">
-                <h4>@<?php echo htmlspecialchars($userName); ?></h4>
-                <a class="btn" href="auth/signout.php">Sign Out</a>
-            </div>
+        <div class="logo">
+            <h2>Virtual Arena</h2>
         </div>
-        <div class="header-row">
-            <div class="header-nav">
-                <a href="index.php?content=dashboard" class="selected">Dashboard</a>
-            </div>
+        <nav>
+            <ul class="nav-box">
+                <li class="nav-item">
+                    <a href="#" class="nav-btn selected">Tournaments</a>
+                    <ul class="dropdown">
+                        <!-- Tournament List -->
+                        <?php 
+                        foreach($tournas as $tourna) {
+                            $id = $tourna["id"];
+                            $title = htmlspecialchars($tourna["title"]);
+                            echo "<li><a href=\"index.php?tourna_id=$id\">$title</a></li>";
+                        }
+                        ?>
+                        <li><a href="index.php?tourna_id=new">New</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+        <div class="auth-box">
+            <a href="../../auth/signout.php" class="auth-btn">Sign Out</a>
         </div>
     </header>
+    <!-- Header -->
 
 
 
@@ -73,7 +87,7 @@ if(isset($_POST["submit"])) {
     <main>
         <div class="content-box">
             <!-- Create Tourna -->
-            <div class="form-box">
+            <div class="form-box box">
                 <form action="" method="post">
                     <h3>Create Tournament</h3>
                     <div class="form-field">

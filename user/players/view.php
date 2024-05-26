@@ -1,7 +1,6 @@
 <?php
+require '../../funcs/player.php';
 require '../../funcs/tourna.php';
-require '../../funcs/team.php';
-require '../../funcs/match.php';
 
 // Check if Logged In
 session_start();
@@ -10,41 +9,45 @@ if(!isset($_SESSION["user_id"])) header("Location: ../../auth/signin.php");
 $userId = $_SESSION["user_id"];
 $userName = $_SESSION["username"];
 
+// Redirect if there is no tourna_id
+if( !(isset($_POST["tourna_id"]) || isset($_GET["tourna_id"])) ) {
+    header("Location: ../dashboard/index.php");
+    exit();
+}
+
 // Get All Tournaments of the user
 $tournas = getTournas($userId, "id, title");     // title, id
-$tournaId = NULL;
 
-if( !(isset($_POST["tourna_id"]) || isset($_GET["tourna_id"])) ) {
-    if(empty($tournas)) {
-        header("Location: ctourna.php");
-        exit();
-    }
-    
-    $tournaId = $tournas[0]["id"];
-}
-else {  
-    $tournaId = isset($_POST["tourna_id"])? $_POST["tourna_id"] : $_GET["tourna_id"];
-    if($tournaId == "new") header("Location: ctourna.php");
+// Get tourna_id
+$tournaId = isset($_POST["tourna_id"])? $_POST["tourna_id"] : $_GET["tourna_id"];
+if($tournaId == "new") {
+    header("Location: ../dashboard/ctourna.php");
+    exit();
 }
 
 // Get Selected Tournament of the user *
 $selectedTourna = getTourna($userId, $tournaId);
-if(empty($selectedTourna)) header("Location: ctourna.php");
+if(empty($selectedTourna)) header("Location: ../dashboard/ctourna.php");
 
 // Get tourna status
 $tournaStatus = getTimeStatus($selectedTourna["start_dt"], $selectedTourna["end_dt"], $selectedTourna["timezone"]);
-if($tournaStatus != "Preparation") {
-    header("Location: view.php?tourna_id=$tournaId");
+if($tournaStatus == "Preparation") {
+    header("Location: index.php?tourna_id=$tournaId&team_id=$teamId");
     exit();
 }
 
-// Get All Teams of the selected tourna
+// Get All Teams
 $teams = getTeams($tournaId);
+
+// Get All Players
+$players = getAllPlayers($tournaId);
+
 
 
 // Notifier
 $msg = "";
 $msgState = "";
+
 
 
 
@@ -61,6 +64,7 @@ $msgState = "";
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../../css/index.css">
+    <link rel="stylesheet" href="../../css/table.css">
     <title>Virtual Arena</title>
 </head>
 <body>
@@ -82,7 +86,7 @@ $msgState = "";
                         foreach($tournas as $tourna) {
                             $id = $tourna["id"];
                             $title = htmlspecialchars($tourna["title"]);
-                            echo "<li><a href=\"index.php?tourna_id=$id\">$title</a></li>";
+                            echo "<li><a href=\"../dashboard/index.php?tourna_id=$id\">$title</a></li>";
                         }
                         ?>
                         <li><a href="index.php?tourna_id=new">New</a></li>
@@ -102,10 +106,10 @@ $msgState = "";
                     </ul>
                 </li>
                 <li class="nav-item">
-                    <a href="../players/index.php?tourna_id=<?php echo $tournaId; ?>" class="nav-btn">Players</a>
+                    <a href="#" class="nav-btn selected">Players</a>
                 </li>
                 <li class="nav-item">
-                    <a href="../matches/index.php?tourna_id=<?php echo $tournaId; ?>" class="nav-btn  selected">Matches</a>
+                    <a href="../matches/index.php?tourna_id=<?php echo $tournaId; ?>" class="nav-btn">Matches</a>
                 </li>
                 <li class="nav-item">
                     <a href="#" class="nav-btn">Leaderboards</a>
@@ -133,16 +137,48 @@ $msgState = "";
 
     <!-- Main Content -->
     <main>
-        <div class="content-box">
-            <?php if($msg != "") echo "<div id=\"msg\" class=\"msg $msgState\">$msg</div>"; ?>
 
+        <div class="content-box">
+            <?php if($msg != "") echo "<div class=\"msg $msgState\">$msg</div>"; ?>
             
+            <!-- Player List Table mixed with Team Name -->
+                <div class="table-box box">
+                    <table>
+                        <tr>
+                            <th>Team Name</th>
+                            <th>Player Name</th>
+                            <th>Email</th>
+                            <th>Contact</th>
+                            <th>Score</th>
+                            <th>Wins</th>
+                            <th>Loses</th>
+                        </tr>
+                    <?php if($players) {
+                            // Loop through
+                            foreach($players as $player) { ?>
+                                
+                                <tr>
+                                    <td><?php echo $player["team_name"]; ?></td>
+                                    <td><?php echo $player["name"]; ?></td>
+                                    <td><?php echo $player["email"]; ?></td>
+                                    <td><?php echo $player["contact_no"]; ?></td>
+                                    <td><?php echo $player["score"]; ?></td>
+                                    <td><?php echo $player["wins"]; ?></td>
+                                    <td><?php echo $player["loses"]; ?></td>
+                                </tr>
+
+                            <?php }
+                        } // has players
+                        // no players
+                        else { ?> <tr> <td colspan="7">No Players Found</td> </tr> <?php }
+                        ?>
+                    </table>
+                </div>
 
         </div>
     </main>
     <!-- Main Content -->
 
-    
 
     <script>
         window.onload = async function() {
@@ -151,7 +187,6 @@ $msgState = "";
             setTimeout(() => msg.style.opacity = '0', 3000)
         }
     </script>
-
 
 </body>
 </html>

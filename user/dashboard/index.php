@@ -1,5 +1,6 @@
 <?php
 require '../../funcs/tourna.php';
+require '../../funcs/team.php';
 
 // Check if Logged In
 session_start();
@@ -36,6 +37,10 @@ if($tournaStatus != "Preparation") {
     exit();
 }
 
+// Get All Teams of the selected tourna
+$teams = getTeams($tournaId);
+
+
 // Notifier
 $msg = "";
 $msgState = "";
@@ -54,6 +59,19 @@ if(isset($_POST["update_tourna"])) {
     // Failed
     else {
         $msg = "An error occured, failed to save tournament info.";
+        $msgState = "failed";
+    }
+}
+// Deletes tourna
+if(isset($_POST["delete_tourna"])) {
+    // Success
+    if(deleteTourna($_POST["tourna_id"])) {
+        $msg = "Tournament deleted successfully";
+        $msgState = "success";
+    }
+    // Failed
+    else {
+        $msg = "An error occured, failed to delete tournament.";
         $msgState = "failed";
     }
 }
@@ -78,38 +96,62 @@ if(isset($_POST["update_tourna"])) {
 
     <!-- Header -->
     <header>
-        <div class="header-row">
-            <div class="header-section">
-                <h3>Virtual Arena</h3>
-                <form class="form-quick" action="" method="post">
-                    <select name="tourna_id" onchange="this.form.submit()">
-                    <?php
-                    // Create options
-                    foreach($tournas as $tourna) {
-                        $title = $tourna["title"];
-                        $id = $tourna["id"];
-                    ?> <option value="<?php echo $id; ?>"><?php echo htmlspecialchars($title); ?></option>
-              <?php }
-                    ?>
-                        <option value="new">New</option>
-                    </select>
-                </form>
-            </div>
-            <div class="header-section">
-                <h4>@<?php echo htmlspecialchars($userName); ?></h4>
-                <a class="btn" href="auth/signout.php">Sign Out</a>
-            </div>
+        <div class="logo">
+            <h2>Virtual Arena</h2>
         </div>
-        <div class="header-row">
-            <div class="header-nav">
-                <a href="#" class="selected">Dashboard</a>
-                <a href="../../viewer/index.php?tourna_id=<?php echo $tournaId; ?>" target="_blank">View</a>
-                <a href="../teams/index.php?tourna_id=<?php echo $tournaId; ?>">Teams</a>
-                <a href="../players/index.php?tourna_id=<?php echo $tournaId; ?>">Players</a>
-                <a href="../matches/index.php?tourna_id=<?php echo $tournaId; ?>">Matches</a>
-                <a href="../results/index.php?tourna_id=<?php echo $tournaId; ?>">Results</a>
-                <a href="../contact/index.php?tourna_id=<?php echo $tournaId; ?>">Contact</a>
-            </div>
+        <nav>
+            <ul class="nav-box">
+                <li class="nav-item">
+                    <a href="#" class="nav-btn selected">Tournaments</a>
+                    <ul class="dropdown">
+                        <!-- Tournament List -->
+                        <?php 
+                        foreach($tournas as $tourna) {
+                            $id = $tourna["id"];
+                            $title = htmlspecialchars($tourna["title"]);
+                            echo "<li><a href=\"index.php?tourna_id=$id\">$title</a></li>";
+                        }
+                        ?>
+                        <li><a href="index.php?tourna_id=new">New</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a href="../teams/index.php?tourna_id=<?php echo $tournaId; ?>" class="nav-btn">Teams</a>
+                    <ul class="dropdown">
+                        <!-- All Teams of Selected Tourna -->
+                        <?php
+                        foreach($teams as $team) {
+                            $id = $team["id"];
+                            $name = htmlspecialchars($team["name"]);
+                            echo "<li><a href=\"../players/index.php?tourna_id=$tournaId&team_id=$id\">$name</a></li>";
+                        }
+                        ?>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a href="../players/index.php?tourna_id=<?php echo $tournaId; ?>" class="nav-btn">Players</a>
+                </li>
+                <li class="nav-item">
+                    <a href="../matches/index.php?tourna_id=<?php echo $tournaId; ?>" class="nav-btn">Matches</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-btn">Leaderboards</a>
+                    <ul class="dropdown">
+                        <li><a href="#">Rankings</a></li>
+                        <li><a href="#">Playerlist</a></li>
+                        <li><a href="#">View Bracket</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-btn">Statistics</a>
+                    <ul class="dropdown">
+                        <li><a href="#">Results</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+        <div class="auth-box">
+            <a href="../../auth/signout.php" class="auth-btn">Sign Out</a>
         </div>
     </header>
     <!-- Header -->
@@ -121,7 +163,7 @@ if(isset($_POST["update_tourna"])) {
 
         <div class="content-box">
             <?php if($msg != "") echo "<div id=\"msg\" class=\"msg $msgState\">$msg</div>"; ?>
-            <div class="form-box">
+            <div class="form-box box">
                 <form class="form-display" action="" method="post">
                     <h3>Tournament</h3>
                     <div class="form-field">
@@ -191,14 +233,17 @@ if(isset($_POST["update_tourna"])) {
                     </div>
                     <input type="hidden" name="tourna_id" value="<?php echo $tournaId; ?>">
                     <input type="hidden" name="creator_id" value="<?php echo $userId; ?>">
-                    <input type="submit" name="update_tourna" value="Save">
+                    <div class="form-btn-box">
+                        <input type="submit" name="delete_tourna" value="Delete" class="danger">
+                        <input type="submit" name="update_tourna" value="Save">
+                    </div>
                 </form>
             </div>
 
             <!-- TODO: Layout of this dashboard info box -->
             <!-- TODO: Teams (../teams/index.php) -->
             <!-- Stats -> Status, Teams, Players, Matches, Rank(w/MVP) -->
-            <div class="info-box">
+            <div class="info-box box">
                 <div class="info-dash">
                     <h3><?php echo htmlspecialchars($selectedTourna["title"]); ?></h3>
                     <p>Status: <?php echo $tournaStatus; ?></p>
@@ -246,7 +291,7 @@ if(isset($_POST["update_tourna"])) {
                     } // has top teams
                     else { echo "<p>Top5 Teams: No Top Teams/Players yet.</p>"; }
                     ?>
-                
+    
                 </div>
             </div>
 
