@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    
+    <select name="" id="">
+        <option >te</option>
+        <option oninput="window.location.assign('/ctourna.php')">Create</option>
+    </select>
+
+    <script>
+        document.onload = function() {
+            const timeZoneElem = document.getElementById('timezone')
+            if (timeZoneElem != null) {
+                const clientTimezone = Intl.DateTimeFormat().resolvedOptions().timeZoneName
+                for(let i = 0; timeZoneElem.options.length; i++) {
+                    let opt = timeZoneElem.options[i]
+                    opt.selected = opt.value == clientTimezone
+                }
+            }
+        }
+    </script>
+
+</body>
+</html>

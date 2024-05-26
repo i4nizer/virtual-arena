@@ -1,0 +1,160 @@
+/* FORMS */
+
+/* for encapsulating posting form only containing btns and hidden inputs */
+.form-quick {
+    width: fit-content;
+    max-width: fit-content;
+    height: fit-content;
+    max-height: fit-content;
+    background-color: transparent;
+}
+
+.form-box {
+    width: auto;
+    height: auto;
+    min-width: fit-content;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid black;
+    border-radius: 6px;
+}
+
+.form-box h1 {
+    padding: 20px 10px;
+}
+
+.form-box form {
+    width: 400px;   
+    height: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    border-radius: 6px;
+    background-color: #950101;
+}
+
+.form-box .form-display {
+    background-color: inherit;
+}
+
+.form-box form h3 {
+    width: 100%;
+    text-align: center;
+    margin: 5px 0 10px 0;
+}
+
+.form-box form .form-field {
+    width: 100%;
+    height: auto;
+    margin: 10px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.form-box form .form-field label {
+    width: 100%;
+    height: auto;
+}
+
+.form-box form .form-field input[type="text"],
+.form-box form .form-field input[type="tel"],
+.form-box form .form-field input[type="email"],
+.form-box form .form-field input[type="number"],
+.form-box form .form-field input[type="datetime"],
+.form-box form .form-field select {
+    width: calc(100% - 20px);
+    height: 40px;
+    padding: 0 10px;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    background-color: #3d0000;
+}
+
+.form-box form .form-field select {
+    width: 100%;
+}
+
+.form-box form .form-field textarea {
+    width: calc(100% - 20px);
+    height: 60px;
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    background-color: #3d0000;
+}
+
+.form-box form input[type="submit"] {
+    width: auto;
+    height: auto;
+    padding: 10px 20px;
+    align-self: flex-end;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    background-color: #ff0000;
+}
+
+.form-box form input[type="submit"]:hover {
+    opacity: 0.8;
+}
+
+/* FORMS */
+
+
+
+
+
+/* SWITCH */
+.switch {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.switch span {
+    margin: 0 0 0 10px;
+}
+
+.switch input {
+    display: none;
+}
+
+.switch div {
+    width: 50px;
+    height: 28px;
+    border-radius: 22px;
+    background-color: #3d0000;
+}
+
+.switch div div {
+    width: 18px;
+    height: 18px;
+    position: relative;
+    top: 5px;
+    left: 5px;
+    border-radius: 50%;
+    background-color: white;
+    transition: left 250ms;
+}
+
+.switch input:checked~div {
+    left: 27px;
+    background-color: #ff0000;
+}
+
+.switch input:checked~div div {
+    left: 27px;
+    background-color: white;
+}
+
+/* SWITCH */

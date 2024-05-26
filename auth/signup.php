@@ -1,7 +1,7 @@
 <?php
 
 // Include the database connection file
-require_once '../pdo.php';
+require '../funcs/auth.php';
 
 if(isset($_POST["submit"])) {
     $username = $_POST["username"];
@@ -23,6 +23,7 @@ if(isset($_POST["submit"])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;700&display=swap" rel="stylesheet" />
+    <title>Sign In</title>
     <link rel="stylesheet" href="style.css" />
 </head>
 

@@ -1,9 +1,9 @@
 <?php
-require_once "pdo.php";
+require "pdo.php";
 
 // Check if Logged In
 session_start();
-if(!isset($_SESSION["user_id"])) header("Location: auth/signin.php");
+if(!isset($_SESSION["user_id"])) header("Location: auth/signin.php");   // redirect to signin page
 
 $userId = $_SESSION["user_id"];
 $userName = $_SESSION["username"];
@@ -28,8 +28,11 @@ $selectedTourna = $tournaId != NULL ? getTourna($userId, $tournaId) : NULL;     
 // Creates tournament
 if(isset($_POST["create_tourna"])) {
     // Success creating tourna
-    if(createTourna($_POST["title"], $_POST["format"], $_POST["max_entry"], $_POST["max_entry_player"], $_POST["pairing"], $_POST["is_public"], $_POST["is_open"], $_POST["description"], $_POST["creator_id"])) {
+    if(createTourna($_POST["title"], $_POST["format"], $_POST["max_entry"], $_POST["max_entry_player"], $_POST["pairing"], isset($_POST["is_public"]), isset($_POST["is_open"]), $_POST["description"], $_POST["creator_id"])) {
         $msg = "Tournament created";
+        $tournaId = $pdo->lastInsertId();
+        $selectedTourna = $tournaId != NULL ? getTourna($userId, $tournaId) : NULL;     // Get Selected Tournament
+        $tournaTitle = $selectedTourna["title"];
     }
     // Failed
     else $msg = "An error occured, failed creating tournament.";
@@ -132,7 +135,7 @@ else if(isset($_POST["remove_player"])) {
                 </select>
             </div>
             <div class="header-section">
-                <h4><?php echo $userName; ?></h4>
+                <h4>@<?php echo $userName; ?></h4>
                 <a class="btn" href="auth/signout.php">Sign Out</a>
             </div>
         </div>
@@ -173,7 +176,7 @@ else if(isset($_POST["remove_player"])) {
                     <h3>Create Tournament</h3>
                     <div class="form-field">
                         <label for="title">Title</label>
-                        <input type="text" name="title" id="title" max="255">
+                        <input type="text" name="title" id="title" max="255" placeholder="Tournament title">
                     </div>  
                     <div class="form-field">
                         <label for="format">Format</label>
@@ -254,21 +257,21 @@ else if(isset($_POST["remove_player"])) {
                             </div>
                             <div class="form-field">
                                 <label for="is_public" class="switch">
-                                    <input type="checkbox" name="is_public" id="is_public" <?php echo ($tourna["is_public"]? "checked":""); ?>>
+                                    <input type="checkbox" name="is_public" id="is_public" <?php echo ($selectedTourna["is_public"]? "checked":""); ?>>
                                     <div><div></div></div>
                                     <span>Public</span>
                                 </label>
                             </div>
                             <div class="form-field">
                                 <label for="is_open" class="switch">
-                                    <input type="checkbox" name="is_open" id="is_open" <?php echo ($tourna["is_open"]? "checked":""); ?>>
+                                    <input type="checkbox" name="is_open" id="is_open" <?php echo ($selectedTourna["is_open"]? "checked":""); ?>>
                                     <div><div></div></div>
                                     <span>Allow registration</span>
                                 </label>
                             </div>
                             <div class="form-field">
                                 <label for="description">Description</label>
-                                <textarea name="description" id="description"><?php echo $tourna["description"]; ?></textarea>
+                                <textarea name="description" id="description"><?php echo $selectedTourna["description"]; ?></textarea>
                             </div>
                             <input type="hidden" name="tourna_id" value="<?php echo $tournaId; ?>">
                             <input type="hidden" name="creator_id" value="<?php echo $userId; ?>">
