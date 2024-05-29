@@ -3,7 +3,6 @@ require '../../funcs/tourna.php';
 require '../../funcs/time.php';
 require '../../funcs/round.php';
 require '../../funcs/team.php';
-require '../../funcs/player.php';
 
 // Check if Logged In
 session_start();
@@ -16,14 +15,26 @@ $userName = $_SESSION["username"];
 $tournas = getTournas($userId);
 if(empty($tournas)) header("Location: ../tournaless/index.php");
 
+// Get Tournament Category
+$category = isset($_GET["category"])? $_GET["category"] : NULL;
+$category = $category ?? "all";
+
+// Get Categorize tourna
+$catTournas = $category == "all"? $tournas : array_filter($tournas, function($t) {
+    $startDt = new DateTime($t["start_dt"], new DateTimeZone($t["timezone"]));
+    $endDt = new DateTime($t["end_dt"], new DateTimeZone($t["timezone"]));
+    $currentDt = new DateTime('now', new DateTimeZone($t["timezone"]));
+
+    GLOBAL $category;
+    if($category == "ended") return $currentDt >= $endDt;
+    else if($category == "ongoing") return $currentDt >= $startDt && $currentDt < $endDt;
+    else return $currentDt < $startDt;
+});
+
 // Init tourna_id
 $tournaId = isset($_POST["tourna_id"])? $_POST["tourna_id"] : NULL;
 $tournaId = $tournaId ?? (isset($_GET["tourna_id"])? $_GET["tourna_id"] : NULL);
 $tournaId = $tournaId ?? $tournas[0]["id"];
-
-// Get Viewed Tourna
-$tourna = getTournaWithCount($tournaId);
-$tournaStatus = getTimeStatus($tourna["start_dt"], $tourna["end_dt"], $tourna["timezone"]);
 
 // Notif
 $msg = isset($_GET["msg"])? $_GET["msg"] : "";
@@ -47,8 +58,6 @@ $msgState = isset($_GET["msg_state"])? $_GET["msg_state"] : "";
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../../css/index.css">
     <link rel="stylesheet" href="../../css/table.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
     <title>Virtual Arena</title>
 </head>
 <body>
@@ -63,20 +72,24 @@ $msgState = isset($_GET["msg_state"])? $_GET["msg_state"] : "";
         <nav>
             <ul class="nav-box">
                 <li class="nav-item">
-                    <a href="../tournaments/index.php" class="nav-btn">Tournaments</a>
+                    <a href="#" class="nav-btn selected">Tournaments</a>
                     <ul class="dropdown">
-                        <li><a href="../tournaments/create.php">Create New</a></li>
+                        <li><a href="index.php?category=all&tourna_id=<?php echo $tournaId; ?>">All</a></li>
+                        <li><a href="index.php?category=preparation&tourna_id=<?php echo $tournaId; ?>">Preparation</a></li>
+                        <li><a href="index.php?category=ongoing&tourna_id=<?php echo $tournaId; ?>">Ongoing</a></li>
+                        <li><a href="index.php?category=ended&tourna_id=<?php echo $tournaId; ?>">Ended</a></li>
+                        <li><a href="create.php">Create New</a></li>
                     </ul>
                 </li>
                 <li class="nav-item">
-                    <a href="#" class="nav-btn selected">Dashboard</a>
+                    <a href="../dashboard/index.php?tourna_id=<?php echo $tournaId; ?>" class="nav-btn">Dashboard</a>
                     <ul class="dropdown">
                         <!-- Tournament List -->
                         <?php 
                         foreach($tournas as $t) {
                             $id = $t["id"];
                             $title = htmlspecialchars($t["title"]);
-                            echo "<li><a href=\"index.php?tourna_id=$id\">$title</a></li>";
+                            echo "<li><a href=\"../dashboard/index.php?tourna_id=$id\">$title</a></li>";
                         }
                         ?>
                     </ul>
@@ -102,9 +115,9 @@ $msgState = isset($_GET["msg_state"])? $_GET["msg_state"] : "";
                         <li><a href="../teams/index.php?tourna_id=<?php echo $tournaId; ?>&team_id=">All</a></li>
                         <?php
                         $teams = getTeams($tournaId, "id, name");
-                        foreach($teams as $t) {
-                            $id = $t["id"];
-                            $name = htmlspecialchars($t["name"]);
+                        foreach($teams as $team) {
+                            $id = $team["id"];
+                            $name = htmlspecialchars($team["name"]);
                             echo "<li><a href=\"../teams/index.php?tourna_id=$tournaId&team_id=$id\">$name</a></li>";
                         }
                         ?>
@@ -147,75 +160,60 @@ $msgState = isset($_GET["msg_state"])? $_GET["msg_state"] : "";
             <?php if($msg != "") echo "<div id=\"msg\" class=\"msg $msgState\">$msg</div>"; ?>
 
             <div class="head-box">
-                <div class="box">
-                    <h3>Tournament: <?php echo $tourna["title"]; ?></h3>
-                </div>
-                <div class="box">
-                    <h3>Status: <?php echo $tournaStatus; ?></h3>
-                </div>
-                <div class="box">
-                    <h3>Rounds: <?php echo $tourna["round_count"]; ?></h3>
-                </div>
-                <div class="box">
-                    <h3>Matches: <?php echo $tourna["match_count"]; ?></h3>
-                </div>
-                <div class="box">
-                    <h3>Teams: <?php echo $tourna["team_count"]; ?></h3>
-                </div>
-                <div class="box">
-                    <h3>Players: <?php echo $tourna["player_count"]; ?></h3>
+                <div class="nav-box">
+                    <h3>Category:</h3>
+                    <div class="nav-item">
+                        <h3 class="nav-btn"><?php echo ucfirst($category); ?></h3>
+                        <ul class="dropdown">
+                            <li><a href="index.php?category=all&tourna_id=<?php echo $tournaId; ?>">All</a></li>
+                            <li><a href="index.php?category=preparation&tourna_id=<?php echo $tournaId; ?>">Preparation</a></li>
+                            <li><a href="index.php?category=ongoing&tourna_id=<?php echo $tournaId; ?>">Ongoing</a></li>
+                            <li><a href="index.php?category=ended&tourna_id=<?php echo $tournaId; ?>">Ended</a></li>
+                            <li><a href="create.php">Create New</a></li>
+                        </ul>
+                    </div>
                 </div>
             </div>
 
-            <div class="chart-box">
-                <canvas id="myChart" width="1000px" height="500px"></canvas>
-            </div>
-
-            <div class="head-box">
-                <h3 class="box">Participating Teams</h3>
-            </div>
+            <!-- Tournament List -->
             <div class="table-box">
                 <table class="box">
                     <tr>
                         <th></th>
-                        <th>Team</th>
-                        <th>Players</th>
-                        <th>Score</th>
-                        <th>Wins</th>
-                        <th>Loses</th>
+                        <th>Tournament</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th>Edit</th>
+                        <th>View</th>
+                        <th>Delete</th>
                     </tr>
                     <?php
-                    $teams = getTeamsWithCount($tournaId);
-                    foreach($teams as $i => $t) {
+                    foreach($catTournas as $i => $ct) {
                         echo "<tr>";
-                        $name = $t["name"];
-                        $score = $t["score"];
-                        $wins = $t["wins"];
-                        $loses = $t["loses"];
+                        $id = $ct["id"];
+                        $title = $ct["title"];
+                        $desc = $ct["description"];
+                        $status = getTimeStatus($ct["start_dt"], $ct["end_dt"], $ct["timezone"]);
                         echo "<td>".($i + 1)."</td>";
-                        echo "<td>$name</td>";
-
-                        echo "<td>";
-                        $players = getPlayers($t["id"]);
-                        $pLen = count($players);
-                        for($i = 0; $i < $pLen; $i++) {
-                            $p = $players[$i];
-                            echo $i < $pLen - 1 && $pLen > 1? $p["name"]." - " : $p["name"];
-                        }
-                        if(empty($players)) echo "Team doesn't have players yet.";
-                        echo "</td>";
-                        
-                        echo "<td>$score</td>";
-                        echo "<td>$wins</td>";
-                        echo "<td>$loses</td>";
+                        echo "<td>$title</td>";
+                        echo "<td>$desc</td>";
+                        echo "<td>$status</td>";
+                        echo "<td><a href=\"edit.php?tourna_id=$id\">Edit</a></td>";
+                        echo "<td><a href=\"../../viewer/dashboard/index.php?tourna_id=$tournaId\">View</a></td>";
+                        ?>
+                        <td>
+                            <form class="form-quick" action="dtourna.php" method="post">
+                                <input type="hidden" name="tourna_id" value="<?php echo $tournaId; ?>">
+                                <input class="danger" type="submit" name="delete_tourna" value="Delete">
+                            </form>
+                        </td>
+                        <?php
                         echo "</tr>";
                     }
-                    if(empty($teams)) echo "<td colspan=\"5\">No participating teams yet.</td>";
+                    if(empty($catTournas)) echo "<tr><td colspan=\"5\">No $category tournaments</td></tr>";
                     ?>
                 </table>
             </div>
-
-            
 
         </div>
     </main>
@@ -223,7 +221,13 @@ $msgState = isset($_GET["msg_state"])? $_GET["msg_state"] : "";
 
     
 
-    <script src="index.js"></script>
+    <script>
+        window.onload = async function() {
+            const msg = document.getElementById('msg')
+            if(msg == null) return
+            setTimeout(() => msg.style.opacity = '0', 3000)
+        }
+    </script>
 
 
 </body>

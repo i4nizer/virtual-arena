@@ -16,30 +16,30 @@
     border-radius: 8px;
     border-collapse: collapse;
     color: white;
-    background-color: rgba(78, 108, 183, 0.69);
 }
 
 .table-box table tr {
     width: auto;
-    height: auto;
+    height: fit-content;
 }
 
 .table-box table th,
 .table-box table td {
     width: min(fit-content, 200px);
-    height: auto;
+    height: 40px;
     word-wrap: break-word;
     padding: 6px 15px;
     border: 1px solid #6c5ce7;
 }
 
-.table-box table th { padding: 20px 15px; }
+.table-box table th { padding: 10px 20px; }
 
 .table-box table tr a,
 .table-box table tr input[type="submit"] {
     width: auto;
     height: auto;
     margin: 0;
+    box-sizing: content-box;
     padding: 10px 20px;
     text-align: center;
     text-decoration: none;
@@ -47,5 +47,6 @@
     border: none;
     border-radius: 8px;
     background-color: #00b894;
+    cursor: pointer;
 }
 /* TABLE */

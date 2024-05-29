@@ -1,6 +1,9 @@
 <?php
-require '../../funcs/team.php';
 require '../../funcs/tourna.php';
+require '../../funcs/time.php';
+require '../../funcs/round.php';
+require '../../funcs/team.php';
+require '../../funcs/player.php';
 
 // Check if Logged In
 session_start();
@@ -9,67 +12,32 @@ if(!isset($_SESSION["user_id"])) header("Location: ../../auth/signin.php");
 $userId = $_SESSION["user_id"];
 $userName = $_SESSION["username"];
 
-// Redirect if there is no tourna_id
-if( !(isset($_POST["tourna_id"]) || isset($_GET["tourna_id"])) ) {
-    header("Location: ../dashboard/index.php");
-    exit();
-}
-
 // Get All Tournaments of the user
-$tournas = getTournas($userId, "id, title");     // title, id
+$tournas = getTournas($userId);
+if(empty($tournas)) header("Location: ../tournaless/index.php");
 
-// Get tourna_id
-$tournaId = isset($_POST["tourna_id"])? $_POST["tourna_id"] : $_GET["tourna_id"];
-if($tournaId == "new") header("Location: ../dashboard/ctourna.php");
+// Init tourna_id
+$tournaId = isset($_POST["tourna_id"])? $_POST["tourna_id"] : NULL;
+$tournaId = $tournaId ?? (isset($_GET["tourna_id"])? $_GET["tourna_id"] : NULL);
+$tournaId = $tournaId ?? $tournas[0]["id"];
 
-// Get Selected Tournament of the user *
-$selectedTourna = getTourna($userId, $tournaId);
-if(empty($selectedTourna)) header("Location: ../dashboard/ctourna.php");
+// Get Selected Tourna
+$tourna = getTournaWithSetup($tournaId);
+$tournaStatus = getTimeStatus($tourna["start_dt"], $tourna["end_dt"], $tourna["timezone"]);
 
-// Get tourna status
-$tournaStatus = getTimeStatus($selectedTourna["start_dt"], $selectedTourna["end_dt"], $selectedTourna["timezone"]);
-if($tournaStatus != "Preparation") {
-    header("Location: view.php?tourna_id=$tournaId");
-    exit();
-}
-
-// Get Teams
-$teamLimit = $selectedTourna["max_entry"];
+// Get All Teams
 $teams = getTeams($tournaId);
 
+// Check Team Id
+$teamId = isset($_POST["team_id"]) || isset($_GET["team_id"])? ($_POST["team_id"] ?? $_GET["team_id"]): NULL;
+if($teamId != NULL) header("Location: edit.php?tourna_id=$tournaId&team_id=$teamId");
 
-// Notifier
-$msg = "";
-$msgState = "";
+// Notif
+$msg = isset($_GET["msg"])? $_GET["msg"] : "";
+$msgState = isset($_GET["msg_state"])? $_GET["msg_state"] : "";
 
 
 
-// Creates a Team
-if(isset($_POST["add_team"]) && count($teams) < $teamLimit) {
-    // Success
-    if(createTeam($_POST["name"], $_POST["tourna_id"])) {
-        $msg = "Team created successfully.";
-        $msgState = "success";
-    }
-    // Fail
-    else {
-        $msg = "An error occured, failed to create team.";
-        $msgState = "failed";
-    }
-}
-// Remove Team
-else if(isset($_POST["remove_team"])) {
-    // Success
-    if(removeTeam($_POST["team_id"])) {
-        $msg = "Team removed successfully.";
-        $msgState = "success";
-    }
-    // Fail
-    else {
-        $msg = "An error occured, failed to remove team.";
-        $msgState = "failed";
-    }
-}
 
 
 
@@ -100,17 +68,40 @@ else if(isset($_POST["remove_team"])) {
         <nav>
             <ul class="nav-box">
                 <li class="nav-item">
-                    <a href="../dashboard/index.php" class="nav-btn">Tournaments</a>
+                    <a href="../tournaments/index.php" class="nav-btn">Tournaments</a>
+                    <ul class="dropdown">
+                        <li><a href="../tournaments/index.php?category=all&tourna_id=<?php echo $tournaId; ?>">All</a></li>
+                        <li><a href="../tournaments/index.php?category=preparation&tourna_id=<?php echo $tournaId; ?>">Preparation</a></li>
+                        <li><a href="../tournaments/index.php?category=ongoing&tourna_id=<?php echo $tournaId; ?>">Ongoing</a></li>
+                        <li><a href="../tournaments/index.php?category=ended&tourna_id=<?php echo $tournaId; ?>">Ended</a></li>
+                        <li><a href="../tournaments/create.php">Create New</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a href="../dashboard/index.php?tourna_id=<?php echo $tournaId; ?>" class="nav-btn">Dashboard</a>
                     <ul class="dropdown">
                         <!-- Tournament List -->
                         <?php 
-                        foreach($tournas as $tourna) {
-                            $id = $tourna["id"];
-                            $title = htmlspecialchars($tourna["title"]);
-                            echo "<li><a href=\"../dashboard/index.php?tourna_id=$id\">$title</a></li>";
+                        foreach($tournas as $t) {
+                            $id = $t["id"];
+                            $title = htmlspecialchars($t["title"]);
+                            echo "<li><a href=\"index.php?tourna_id=$id\">$title</a></li>";
                         }
                         ?>
-                        <li><a href="index.php?tourna_id=new">New</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a href="../matches/index.php?tourna_id=<?php echo $tournaId; ?>" class="nav-btn">Matchlist</a>
+                    <ul class="dropdown">
+                        <!-- Tournament Matchlist -->
+                        <?php 
+                        $rounds = getRounds($tournaId);
+                        foreach($rounds as $r) {
+                            $id = $r["id"];
+                            $number = $r["number"];
+                            echo "<li><a href=\"../dashboard/index.php?round_id=$id\">Round $number</a></li>";
+                        }
+                        ?>
                     </ul>
                 </li>
                 <li class="nav-item">
@@ -118,38 +109,40 @@ else if(isset($_POST["remove_team"])) {
                     <ul class="dropdown">
                         <!-- All Teams of Selected Tourna -->
                         <?php
-                        foreach($teams as $team) {
-                            $id = $team["id"];
-                            $name = htmlspecialchars($team["name"]);
+                        $teams = getTeams($tournaId, "id, name");
+                        foreach($teams as $t) {
+                            $id = $t["id"];
+                            $name = htmlspecialchars($t["name"]);
+                            echo "<li><a href=\"edit.php?tourna_id=$tournaId&team_id=$id\">$name</a></li>";
+                        }
+                        ?>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a href="../players/all.php?tourna_id=<?php echo $tournaId; ?>" class="nav-btn">Players</a>
+                    <ul class="dropdown">
+                        <!-- All Teams of Selected Tourna -->
+                        <li><a href="../players/all.php?tourna_id=<?php echo $tournaId; ?>">All</a></li>
+                        <?php
+                        foreach($teams as $t) {
+                            $id = $t["id"];
+                            $name = htmlspecialchars($t["name"]);
                             echo "<li><a href=\"../players/index.php?tourna_id=$tournaId&team_id=$id\">$name</a></li>";
                         }
                         ?>
                     </ul>
                 </li>
                 <li class="nav-item">
-                    <a href="../players/index.php?tourna_id=<?php echo $tournaId; ?>" class="nav-btn">Players</a>
-                </li>
-                <li class="nav-item">
-                    <a href="../matches/index.php?tourna_id=<?php echo $tournaId; ?>" class="nav-btn">Matches</a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-btn">Leaderboards</a>
+                    <a href="../leaderboards/index.php?tourna_id=<?php echo $tournaId; ?>" class="nav-btn">Leaderboards</a>
                     <ul class="dropdown">
-                        <li><a href="#">Rankings</a></li>
-                        <li><a href="#">Playerlist</a></li>
-                        <li><a href="#">View Bracket</a></li>
-                    </ul>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-btn">Statistics</a>
-                    <ul class="dropdown">
-                        <li><a href="#">Results</a></li>
+                        <li><a href="../leaderboards/index.php?tourna_id=<?php echo $tournaId; ?>&ranking=team">Team Ranking</a></li>
+                        <li><a href="../leaderboards/index.php?tourna_id=<?php echo $tournaId; ?>&ranking=player">Player Ranking</a></li>
                     </ul>
                 </li>
             </ul>
         </nav>
         <div class="auth-box">
-            <a href="../../auth/signout.php" class="auth-btn">Sign Out</a>
+            <a href="../../auth/signout.php" class="auth-btn">Sign Out @<?php echo $userName; ?></a>
         </div>
     </header>
     <!-- Header -->
@@ -158,54 +151,114 @@ else if(isset($_POST["remove_team"])) {
 
     <!-- Main Content -->
     <main>
-
         <div class="content-box">
-            <?php if($msg != "") echo "<div class=\"msg $msgState\">$msg</div>"; ?>
-            <?php
-            // Watch Team Limit (max_entry) 
-            if(empty($teams) || count($teams) < $teamLimit) { ?>
-                <!-- Add Team Form -->
+            <?php if($msg != "") echo "<div id=\"msg\" class=\"msg $msgState\">$msg</div>"; ?>
+
+            <div class="head-box">
+                <div class="box">
+                    <h3>Tournament: <?php echo $tourna["title"]; ?></h3>
+                </div>
+                <div class="nav-box">
+                    <h3 class="box">Team: </h3>
+                    <div class="nav-item">
+                        <h3 class="nav-btn"><a href="#">All</a></h3>
+                        <ul class="dropdown">
+                            <?php
+                            foreach($teams as $t) {
+                                $id = $t["id"];
+                                $name = $t["name"];
+                                echo "<li><a href=\"edit.php?tourna_id=$tournaId&team_id=$id\">$name</a></li>";
+                            }
+                            ?>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <?php 
+            // Show create Team when below limit
+            if(empty($teams) || count($teams) < $tourna["max_entry"]) {
+                ?>
                 <div class="form-box box">
-                    <form action="" method="post">
+                    <form action="cteam.php" method="post">
                         <h3>Add Team</h3>
                         <div class="form-field">
-                            <label for="name">Team Name</label>
-                            <input type="text" name="name" id="name" max="255" placeholder="Team name">
+                            <label for="name">Name</label>
+                            <input type="text" name="name" id="name" placeholder="Team name"> 
                         </div>
                         <input type="hidden" name="tourna_id" value="<?php echo $tournaId; ?>">
-                        <input type="submit" name="add_team" value="Add Team">
+                        <input type="submit" name="create_team" value="Add">
                     </form>
                 </div>
-            <?php } ?>
+                <?php
+            }
+            ?>
 
-            <!-- Team List Table -->
-            <div class="table-box box">
-                <table>
+            <div class="table-box">
+                <table class="box">
                     <tr>
+                        <th></th>
                         <th>Team</th>
                         <th>Players</th>
-                        <th>Remove</th>
+                        <?php
+                        if($tournaStatus != "Preparation") {
+                            echo "<th>Score</th>";
+                            echo "<th>Wins</th>";
+                            echo "<th>Loses</th>";
+                            echo "<th>Edit</th>";
+                        }
+                        else {
+                            echo "<th>Edit</th>";
+                            echo "<th>Remove</th>";
+                        }
+                        ?>
                     </tr>
-                <?php if($teams) {
-                        // Loop through
-                        foreach($teams as $team) { ?>
+                    <?php
+                    $teams = getTeamsWithCount($tournaId);
+                    foreach($teams as $i => $t) {
+                        echo "<tr>";
+                        $id = $t["id"];
+                        $name = $t["name"];
+                        echo "<td>".($i + 1)."</td>";
+                        echo "<td>$name</td>";
+                        
+                        echo "<td>";
+                        $players = getPlayers($t["id"], "name");
+                        $pLen = count($players);
+                        
+                        for($i = 0; $i < $pLen; $i++) {
+                            $p = $players[$i];
+                            echo $i < $pLen - 1 && $pLen > 1? $p["name"]." - " : $p["name"];
+                        }
+                        
+                        if(empty($players)) echo "Team doesn't have players yet.";
+                        echo "</td>";
+                        
+                        if($tournaStatus != "Preparation") {
+                            $score = $t["score"];
+                            $wins = $t["wins"];
+                            $loses = $t["loses"];
                             
-                            <tr>
-                                <td><?php echo $team["name"]; ?></td>
-                                <td>   <a href="../players/index.php?team_id=<?php echo $team["id"]; ?>&tourna_id=<?php echo $tournaId; ?>">Manage</a>   </td>
-                                <td>
-                                    <form action="" method="post">
-                                        <input type="hidden" name="team_id" value="<?php echo $team["id"]; ?>">
-                                        <input type="hidden" name="tourna_id" value="<?php echo $tournaId; ?>">
-                                        <input type="submit" name="remove_team" value="Remove" class="danger">
-                                    </form>
-                                </td>
-                            </tr>
-
-                        <?php }
-                    } // has teams
-                    // no teams
-                    else { ?> <tr> <td colspan="3">No Teams Found</td> </tr> <?php }
+                            echo "<td>$score</td>";
+                            echo "<td>$wins</td>";
+                            echo "<td>$loses</td>";
+                            echo "<td><a href=\"edit.php?tourna_id=$tournaId&team_id=$id\">Edit</a></td>";
+                        }
+                        else {
+                            echo "<td><a href=\"edit.php?tourna_id=$tournaId&team_id=$id\">Edit</a></td>";
+                            ?>
+                            <td>
+                                <form action="dteam.php" method="post">
+                                    <input type="hidden" name="tourna_id" value="<?php echo $tournaId; ?>">
+                                    <input type="hidden" name="team_id" value="<?php echo $id; ?>">
+                                    <input class="danger" type="submit" name="delete_team" value="Remove">
+                                </form>
+                            </td>
+                            <?php   
+                        }
+                        echo "</tr>";
+                    }
+                    if(empty($teams)) echo "<td colspan=\"100%\">No participating teams yet.</td>";
                     ?>
                 </table>
             </div>
@@ -214,6 +267,7 @@ else if(isset($_POST["remove_team"])) {
     </main>
     <!-- Main Content -->
 
+    
 
     <script>
         window.onload = async function() {
@@ -222,6 +276,7 @@ else if(isset($_POST["remove_team"])) {
             setTimeout(() => msg.style.opacity = '0', 3000)
         }
     </script>
+
 
 </body>
 </html>

@@ -19,3 +19,8 @@ function createMatch($tournaId, $startDT, $refId, $p1Id, $p2Id) {
     // Boolean state return Success
     return $stmt->rowCount() > 0;
 }
+
+// Match
+function rematchTeams($tournaId) {
+    
+}

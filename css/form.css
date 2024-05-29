@@ -8,6 +8,7 @@
     max-height: fit-content;
     background-color: transparent;
 }
+.form-quick .danger { background-color: #ef3ea2 !important; }
 
 .form-box {
     width: auto;
@@ -26,7 +27,8 @@
 }
 
 .form-box form {
-    width: 400px;   
+    width: auto;
+    min-width: 300px;
     height: auto;
     padding: 20px;
     
@@ -46,6 +48,19 @@
     width: 100%;
     text-align: center;
     margin: 5px 0 10px 0;
+}
+
+.form-box form a {
+    width: calc(100% - 20px);
+    height: auto;
+    margin: 5px 0;
+    padding: 10px;
+    font-size: 0.9em;
+    text-align: center;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    background-color: #00b894;
 }
 
 .form-box form .form-field {
@@ -93,10 +108,11 @@
 }
 
 .form-box form input[type="submit"] {
-    width: auto;
+    width: min(400px, 100%);
     height: auto;
+    margin: 10px 0 0 0;
     padding: 10px 20px;
-    align-self: flex-end;
+    align-self: center;
     border: none;
     border-radius: 8px;
     color: white;
@@ -106,8 +122,20 @@
 .form-box form input[type="submit"]:hover {
     opacity: 0.8;
 }
-
 /* FORMS */
+
+
+
+
+
+/* TWO COL FORM OVERRIDE */
+.form-box form .col-box {
+    width: 100%;
+    gap: 0 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+/* TWO COL FORM OVERRIDE */
 
 
 

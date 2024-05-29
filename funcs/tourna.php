@@ -5,40 +5,113 @@ require "pdo.php";
 
 
 
-// Insert Tourna
-function createTourna($title, $timezone, $format, $maxEntry, $maxEntryPlayer, $start_dt, $end_dt, $pairing, $public, $open, $desc, $creatorId) {
+// Setup tourna //
+function createTournaSetup($tournaId, $format, $maxEntry, $maxEntryPlayer, $pairing, $public, $open) {
     GLOBAL $pdo;
 
-    // Prepare SQL 
-    $sql = "INSERT INTO tournament (title, timezone, format,  max_entry, max_entry_player, start_dt, end_dt, pairing, is_public, is_open, description, creator_id) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    $stmt = $pdo->prepare($sql);
-
     // Supply param and execute
-    $stmt->execute(array($title, $timezone, $format, $maxEntry, $maxEntryPlayer, $start_dt, $end_dt, $pairing, $public, $open, $desc, $creatorId));
+    $sql = "INSERT INTO tourna_setup (format, max_entry, max_entry_player, pairing, is_public, is_open, tourna_id) VALUES(?, ?, ?, ?, ?, ?, ?)";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(array($format, $maxEntry, $maxEntryPlayer, $pairing, $public, $open, $tournaId));
 
     // Boolean state return Success
     return $stmt->rowCount() > 0;
 }
 
-// Get Specific Tourna (most used)
-function getTourna($userId, $tournaId) {
+// Get Setup //
+function getTournaSetup($tournaId, $cols = "*") {
+    GLOBAL $pdo;
+
+    // Supply param and execute
+    $sql = "SELECT $cols FROM tourna_setup WHERE tourna_id = ?";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(array($tournaId));
+
+    // Boolean state return Success
+    return $stmt->rowCount() > 0;
+}
+
+// Change Setup //
+function updateTournaSetup($tournaId, $format, $maxEntry, $maxEntryPlayer, $pairing, $public, $open) {
+    GLOBAL $pdo;
+
+    // Supply param and execute
+    $sql = "UPDATE tourna_setup SET format = ?, max_entry = ?, max_entry_player = ?, pairing = ?, is_public = ?, is_open = ? WHERE tourna_id = ?";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(array($format, $maxEntry, $maxEntryPlayer, $pairing, $public, $open, $tournaId));
+
+    // Boolean state return Success
+    return $stmt->rowCount() > 0;
+}
+
+// Insert Tourna //
+function createTourna($title, $timezone, $start_dt, $end_dt, $desc, $creatorId) {
+    GLOBAL $pdo;
+
+    // Supply param and execute
+    $sql = "INSERT INTO tourna (title, timezone, start_dt, end_dt, description, creator_id) VALUES(?, ?, ?, ?, ?, ?)";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(array($title, $timezone, $start_dt, $end_dt, $desc, $creatorId));
+
+    // Boolean state return Success
+    return $stmt->rowCount() > 0;
+}
+
+// Get Tourna w/setup //
+function getTournaWithSetup($tournaId) {
     GLOBAL $pdo;
 
     // Prepare & Exec
-    $sql = "SELECT * FROM tournament WHERE creator_id = ? AND id = ? LIMIT 1";
+    $sql = "SELECT tourna.*, tourna_setup.* FROM tourna
+        INNER JOIN tourna_setup ON tourna_setup.tourna_id = tourna.id
+        WHERE tourna.id = ? LIMIT 1
+    ";
     $stmt = $pdo->prepare($sql);
-    $stmt->execute(array($userId, $tournaId));
+    $stmt->execute(array($tournaId));
 
     // Fetch tourna
     return $stmt->fetch();
 }
 
-// Get Tourna (assoc -> title, id)
-function getTournas($userId, $cols) {
+// Get Tourna w/counts (Dashboard) //
+function getTournaWithCount($tournaId) {
     GLOBAL $pdo;
 
     // Prepare & Exec
-    $sql = "SELECT $cols FROM tournament WHERE creator_id = ?";
+    $sql = "SELECT
+            tourna.*,
+            (SELECT COUNT(*) FROM round WHERE round.tourna_id = tourna.id) AS round_count,
+            (SELECT COUNT(*) FROM `match` INNER JOIN round ON `match`.round_id = round.id WHERE round.tourna_id = tourna.id) AS match_count,
+            (SELECT COUNT(*) FROM team WHERE team.tourna_id = tourna.id) AS team_count,
+            (SELECT COUNT(*) FROM player INNER JOIN team ON player.team_id = team.id WHERE team.tourna_id = tourna.id) AS player_count
+        FROM tourna WHERE tourna.id = ? LIMIT 1;
+    ";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(array($tournaId));
+
+    // Fetch tourna
+    return $stmt->fetch();
+}
+
+// Get Specific Tourna (most used)
+function getTourna($tournaId) {
+    GLOBAL $pdo;
+
+    // Prepare & Exec
+    $sql = "SELECT * FROM tourna WHERE id = ? LIMIT 1";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(array($tournaId));
+
+    // Fetch tourna
+    return $stmt->fetch();
+}
+
+// Get Tourna (assoc -> title, id) //
+function getTournas($userId, $cols = "*") {
+    GLOBAL $pdo;
+
+    // Prepare & Exec
+    $sql = "SELECT $cols FROM tourna WHERE creator_id = ?";
     $stmt = $pdo->prepare($sql);
     $stmt->execute(array($userId));
 
@@ -46,16 +119,16 @@ function getTournas($userId, $cols) {
     return $stmt->fetchAll();
 }
 
-// Usually used in homepage prep
-function updateTourna($id, $title, $timezone, $format, $maxEntry, $maxEntryPlayer, $start_dt, $end_dt, $pairing, $public, $open, $desc, $creatorId) {
+// Usually used in homepage prep //
+function updateTourna($id, $title, $timezone, $start_dt, $end_dt, $desc) {
     GLOBAL $pdo;
 
     // Prepare SQL 
-    $sql = "UPDATE tournament SET title = ?, timezone = ?, format = ?, max_entry = ?, max_entry_player = ?, start_dt = ?, end_dt = ?, pairing = ?, is_public = ?, is_open = ?, description = ?, creator_id = ? WHERE id = ?";
+    $sql = "UPDATE tourna SET title = ?, timezone = ?, start_dt = ?, end_dt = ?, description = ? WHERE id = ?";
     $stmt = $pdo->prepare($sql);
 
     // Supply param and execute
-    $stmt->execute(array($title, $timezone, $format, $maxEntry, $maxEntryPlayer, $start_dt, $end_dt, $pairing, $public, $open, $desc, $creatorId, $id));
+    $stmt->execute(array($title, $timezone, $start_dt, $end_dt, $desc, $id));
 
     // Boolean state return Success
     return $stmt->rowCount() > 0;
@@ -66,7 +139,7 @@ function deleteTourna($id) {
     GLOBAL $pdo;
 
     // Prepare and Execute
-    $sql = "DELETE FROM tournament WHERE id = ?";
+    $sql = "DELETE FROM tourna WHERE id = ?";
     $stmt = $pdo->prepare($sql);
     $stmt->execute(array($id));
 
@@ -78,7 +151,7 @@ function updateTournaOngoing($id, $desc, $end_dt, $public) {
     GLOBAL $pdo;
 
     // Prepare SQL 
-    $sql = "UPDATE tournament SET description = ?, end_dt = ?, is_public = ? WHERE id = ?";
+    $sql = "UPDATE tourna SET description = ?, end_dt = ?, is_public = ? WHERE id = ?";
     $stmt = $pdo->prepare($sql);
 
     // Supply param and execute
@@ -93,7 +166,7 @@ function updateTournaEnded($id, $desc, $public) {
     GLOBAL $pdo;
 
     // Prepare SQL 
-    $sql = "UPDATE tournament SET description = ?, is_public = ? WHERE id = ?";
+    $sql = "UPDATE tourna SET description = ?, is_public = ? WHERE id = ?";
     $stmt = $pdo->prepare($sql);
 
     // Supply param and execute
@@ -105,18 +178,6 @@ function updateTournaEnded($id, $desc, $public) {
 
 
 
-
-// Util -> str params
-function getTimeStatus($startDtStr, $endDtStr, $timezone) {
-    // Convert to time
-    $startDt = new DateTime($startDtStr, new DateTimeZone($timezone));
-    $endDt = new DateTime($endDtStr, new DateTimeZone($timezone));
-    $currentDt = new DateTime('now', new DateTimeZone($timezone));
-
-    if($currentDt->diff($startDt)->invert) return "Ended";        // After
-    else if($currentDt->diff($endDt)->invert) return "Ongoing";   // During
-    else return "Preparation";                                    // Before
-}
 
 // Count teams of tourna
 function getTeamCount($tournaId) {
