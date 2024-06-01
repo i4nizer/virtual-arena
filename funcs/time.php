@@ -8,7 +8,7 @@ function getTimeStatus($startDtStr, $endDtStr, $timezone) {
     $endDt = new DateTime($endDtStr, new DateTimeZone($timezone));
     $currentDt = new DateTime('now', new DateTimeZone($timezone));
 
-    if($currentDt->diff($startDt)->invert) return "Ended";        // After
-    else if($currentDt->diff($endDt)->invert) return "Ongoing";   // During
-    else return "Preparation";                                    // Before
+    if($currentDt < $startDt) return "Preparation";
+    else if($currentDt >= $endDt) return "Ended";
+    else return "Ongoing";
 }

@@ -117,7 +117,7 @@ $msgState = isset($_GET["msg_state"])? $_GET["msg_state"] : "";
                         foreach($rounds as $r) {
                             $id = $r["id"];
                             $number = $r["number"];
-                            echo "<li><a href=\"../dashboard/index.php?round_id=$id\">Round $number</a></li>";
+                            echo "<li><a href=\"../matches/index.php?tourna_id=$tournaId&round_id=$id\">Round $number</a></li>";
                         }
                         ?>
                     </ul>

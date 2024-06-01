@@ -89,7 +89,7 @@ if(empty($tourna)) header("Location: index.php?tourna_id=$tournaId&msg=No tourna
                         foreach($rounds as $round) {
                             $id = $round["id"];
                             $number = $round["number"];
-                            echo "<li><a href=\"../dashboard/index.php?round_id=$id\">Round $number</a></li>";
+                            echo "<li><a href=\"../matches/index.php?tourna_id=$tournaId&round_id=$id\">Round $number</a></li>";
                         }
                         ?>
                     </ul>

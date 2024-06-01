@@ -24,7 +24,7 @@ if(isset($_POST["edit_player"])) {
     $msgState = $updated? "success": "failed";
 }
 else if(isset($_POST["update_player"])) {
-    $updated = updatePlayer($_POST["player_id"], $_POST["score"], $_POST["wins"], $_POST["loses"]);
+    $updated = updatePlayerStats($_POST["player_id"], $_POST["score"], $_POST["wins"], $_POST["loses"]);
     
     $msg = $updated? "Player updated successfully.": "An error occured, failed to update player.";
     $msgState = $updated? "success": "failed";

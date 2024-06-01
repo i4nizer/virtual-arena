@@ -100,7 +100,7 @@ $msgState = isset($_GET["msg_state"])? $_GET["msg_state"] : "";
                         foreach($rounds as $r) {
                             $id = $r["id"];
                             $number = $r["number"];
-                            echo "<li><a href=\"../dashboard/index.php?round_id=$id\">Round $number</a></li>";
+                            echo "<li><a href=\"../matches/index.php?tourna_id=$tournaId&round_id=$id\">Round $number</a></li>";
                         }
                         ?>
                     </ul>
@@ -172,8 +172,11 @@ $msgState = isset($_GET["msg_state"])? $_GET["msg_state"] : "";
                                 $name = $t["name"];
                                 echo "<li><a href=\"index.php?tourna_id=$tournaId&team_id=$id\">$name</a></li>";
                             }
+
+                            if($tournaStatus == "Preparation") {
+                                echo "<li><a href=\"index.php?tourna_id=$tournaId\">Add Team</a></li>";
+                            }
                             ?>
-                            <li><a href="index.php?tourna_id=<?php echo $tournaId; ?>">Add Team</a></li>
                         </ul>
                     </div>
                 </div>
@@ -207,6 +210,7 @@ $msgState = isset($_GET["msg_state"])? $_GET["msg_state"] : "";
             <div class="table-box">
                 <table class="box">
                     <tr>
+                        <th></th>
                         <th>Player</th>
                         <th>Email</th>
                         <th>Contact</th>
@@ -247,6 +251,9 @@ $msgState = isset($_GET["msg_state"])? $_GET["msg_state"] : "";
                     
                     if($tournaStatus == "Preparation" && (empty($players) || count($players) < $tourna["max_entry_player"])) {
                         echo "<tr><td colspan=\"100%\"><a href=\"../players/index.php?tourna_id=$tournaId&team_id=$teamId\">Add Players</a></td></tr>";
+                    }
+                    else if(empty($players)) {
+                        echo "<tr><td colspan=\"100%\">Team doesn't have players yet.</td></tr>";
                     }
                     ?>
                 </table>

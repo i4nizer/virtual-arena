@@ -50,18 +50,20 @@ function pairTeams($teams, $pairing) {
 }
 
 // Override all matches of the tourna //
-function createNewMatchList($tournaId, $pairs) {
+function createNewMatchList($tournaId, $creationDtStr, $pairs, $override = true) {
     GLOBAL $pdo;
 
     // Delete existing rounds and matches of the tourna
-    $sql = "DELETE FROM round WHERE tourna_id = ?";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute(array($tournaId));
+    if($override) {
+        $sql = "DELETE FROM round WHERE tourna_id = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute(array($tournaId));
+    }
 
     // Create new Round
-    $sql = "INSERT INTO `round` (tourna_id) VALUES(?)";
+    $sql = "INSERT INTO `round` (start_dt, tourna_id) VALUES(?, ?)";
     $stmt = $pdo->prepare($sql);
-    $stmt->execute(array($tournaId));
+    $stmt->execute(array($creationDtStr, $tournaId));
     $roundId = $pdo->lastInsertId();
 
     // Insert Matches
@@ -80,10 +82,11 @@ function createNewMatchList($tournaId, $pairs) {
         $p2Id = ($pair[1])["id"];
         $sql .= "($p1Id, $p2Id, $roundId)".($i < $pLen - 1 ? ",":"");
     }
-    
-    echo $sql;  
+
+    echo $sql;
     // Move the no pair to the next round
     if($noPairId != NULL) {
+        if(count($pairs) <= 1) return true;
         $pdo->exec("UPDATE team SET round = CASE WHEN id = $noPairId THEN 2 ELSE 1 END WHERE tourna_id = $tournaId ");
     }
 
@@ -131,7 +134,7 @@ function createTeam($name, $tournaId) {
     $pairs = pairTeams($teams, $tournaTzP["pairing"]);
     
     // Create New Matchlist
-    $matched = createNewMatchList($tournaId, $pairs);
+    $matched = createNewMatchList($tournaId, $creationDt, $pairs);
 
     // Boolean state return Success
     return $teamCreated && $matched;

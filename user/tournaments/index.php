@@ -103,7 +103,7 @@ $msgState = isset($_GET["msg_state"])? $_GET["msg_state"] : "";
                         foreach($rounds as $round) {
                             $id = $round["id"];
                             $number = $round["number"];
-                            echo "<li><a href=\"../dashboard/index.php?round_id=$id\">Round $number</a></li>";
+                            echo "<li><a href=\"../matches/index.php?tourna_id=$tournaId&round_id=$id\">Round $number</a></li>";
                         }
                         ?>
                     </ul>
@@ -184,22 +184,25 @@ $msgState = isset($_GET["msg_state"])? $_GET["msg_state"] : "";
                         <th>Description</th>
                         <th>Status</th>
                         <th>Edit</th>
-                        <th>View</th>
                         <th>Delete</th>
+                        <th>View</th>
+                        <th>Link</th>
                     </tr>
                     <?php
                     foreach($catTournas as $i => $ct) {
                         echo "<tr>";
+                        
                         $id = $ct["id"];
                         $title = $ct["title"];
                         $desc = $ct["description"];
                         $status = getTimeStatus($ct["start_dt"], $ct["end_dt"], $ct["timezone"]);
+                        
                         echo "<td>".($i + 1)."</td>";
                         echo "<td>$title</td>";
                         echo "<td>$desc</td>";
                         echo "<td>$status</td>";
                         echo "<td><a href=\"edit.php?tourna_id=$id\">Edit</a></td>";
-                        echo "<td><a href=\"../../viewer/dashboard/index.php?tourna_id=$tournaId\">View</a></td>";
+                        
                         ?>
                         <td>
                             <form class="form-quick" action="dtourna.php" method="post">
@@ -208,6 +211,9 @@ $msgState = isset($_GET["msg_state"])? $_GET["msg_state"] : "";
                             </form>
                         </td>
                         <?php
+
+                        echo "<td><a href=\"../../viewer/dashboard/index.php?tourna_id=$tournaId\">View</a></td>";
+                        echo "<td><a class=\"copy-link\" href=\"localhost/virtual-arena/viewer/dashboard/index.php?tourna_id=$tournaId\">Copy</a></td>";
                         echo "</tr>";
                     }
                     if(empty($catTournas)) echo "<tr><td colspan=\"5\">No $category tournaments</td></tr>";
@@ -223,9 +229,36 @@ $msgState = isset($_GET["msg_state"])? $_GET["msg_state"] : "";
 
     <script>
         window.onload = async function() {
+            console.log("DOM Loaded")
+            
             const msg = document.getElementById('msg')
-            if(msg == null) return
-            setTimeout(() => msg.style.opacity = '0', 3000)
+            if(msg != null) setTimeout(() => msg.style.opacity = '0', 3000)
+
+            // Select all elements with the class 'copy-link'
+            const copyLinks = document.querySelectorAll('.copy-link');
+
+            // Attach event listener to each 'copy-link' element
+            copyLinks.forEach(link => {
+                link.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    const linkUrl = this.getAttribute('href');
+                    
+                    // Create a temporary input element
+                    const tempInput = document.createElement('input');
+                    tempInput.value = linkUrl;
+                    document.body.appendChild(tempInput);
+                    
+                    // Select the text and copy it to clipboard
+                    tempInput.select();
+                    document.execCommand('copy');
+                    
+                    // Remove the temporary input element
+                    document.body.removeChild(tempInput);
+                    
+                    alert('Link copied to clipboard: ' + linkUrl);
+                });
+            });
+
         }
     </script>
 

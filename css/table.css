@@ -34,6 +34,11 @@
 
 .table-box table th { padding: 10px 20px; }
 
+.table-box table tr input[type="radio"] {
+    width: 20px;
+    height: 20px;
+}
+
 .table-box table tr a,
 .table-box table tr input[type="submit"] {
     width: auto;

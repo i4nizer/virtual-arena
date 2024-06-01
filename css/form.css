@@ -10,6 +10,20 @@
 }
 .form-quick .danger { background-color: #ef3ea2 !important; }
 
+.form-quick .tbl-input {
+    padding: 5px 10px;
+    color: inherit;
+    border: none;
+    background-color: transparent;
+}
+.form-quick .tbl-input::placeholder { color: lightgray; }
+.form-quick .tbl-input:focus {
+    border: none;
+    outline: none;
+    border-bottom: 1px solid #00b894;
+    background-color: rgba(0, 184, 147, 0.3);
+}
+
 .form-box {
     width: auto;
     height: auto;
